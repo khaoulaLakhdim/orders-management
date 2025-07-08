@@ -16,7 +16,7 @@ const App = () => {
     // Check if user is authenticated
     const checkAuth = async () => {
       try {
-        const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem('authToken');
         if (token === 'authenticated') {
           // Simple check - if token exists and is 'authenticated', user is logged in
           setIsAuthenticated(true);
@@ -29,7 +29,7 @@ const App = () => {
         localStorage.removeItem('user');
         setIsAuthenticated(false);
       } finally {
-        setLoading(false);
+    setLoading(false);
       }
     };
 

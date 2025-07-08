@@ -13,118 +13,112 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 @Component
 public class DataSeeder implements CommandLineRunner {
 
+    private static final int TARGET_ORDER_COUNT = 1000;
+
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private ClientRepository clientRepository;
-    
+
     @Autowired
     private OrderRepository orderRepository;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
-        // Only seed if database is empty
-        if (userRepository.count() == 0 && clientRepository.count() == 0) {
-            seedUsers();
-            seedClients();
-            seedOrders();
-            System.out.println("✅ Database seeded successfully!");
-        } else {
-            System.out.println("ℹ️  Database already contains data, skipping seeding.");
-        }
+        seedUsersIfEmpty();
+        seedClientsIfEmpty();
+        seedOrdersUpToTarget();
     }
 
-    private void seedUsers() {
-        String encodedPassword = passwordEncoder.encode("password");
-        
-        List<User> users = Arrays.asList(
-            new User("admin", encodedPassword, "ADMIN"),
-            new User("manager", encodedPassword, "MANAGER"),
-            new User("user1", encodedPassword, "USER"),
-            new User("user2", encodedPassword, "USER")
+    private void seedUsersIfEmpty() {
+        if (userRepository.count() > 0) return;
+
+        String pw = passwordEncoder.encode("password");
+        List<User> users = List.of(
+            new User("admin",   pw, "ADMIN"),
+            new User("manager", pw, "MANAGER"),
+            new User("user1",   pw, "USER"),
+            new User("user2",   pw, "USER")
         );
-        
         userRepository.saveAll(users);
-        System.out.println("👥 Seeded " + users.size() + " users");
-        System.out.println("🔑 All users have password: 'password'");
+        System.out.println("👥 Seeded " + users.size() + " users (password = 'password')");
     }
 
-    private void seedClients() {
-        List<Client> clients = Arrays.asList(
-            new Client("Acme Corporation", "ACME001", "New York"),
-            new Client("Tech Solutions Ltd", "TECH002", "San Francisco"),
-            new Client("Global Industries", "GLOB003", "Chicago"),
-            new Client("Innovation Systems", "INNO004", "Boston"),
-            new Client("Digital Dynamics", "DIGI005", "Seattle"),
-            new Client("Future Technologies", "FUTU006", "Austin"),
-            new Client("Smart Solutions", "SMAR007", "Denver"),
-            new Client("Elite Enterprises", "ELIT008", "Miami")
+    private void seedClientsIfEmpty() {
+        if (clientRepository.count() > 0) return;
+
+        List<Client> clients = List.of(
+            new Client("Acme Corporation",   "ACME001", "New York"),
+            new Client("Tech Solutions Ltd", "TECH002","San Francisco"),
+            new Client("Global Industries",  "GLOB003", "Chicago"),
+            new Client("Innovation Systems","INNO004", "Boston"),
+            new Client("Digital Dynamics",   "DIGI005", "Seattle"),
+            new Client("Future Technologies","FUTU006", "Austin"),
+            new Client("Smart Solutions",    "SMAR007", "Denver"),
+            new Client("Elite Enterprises",  "ELIT008", "Miami")
         );
-        
         clientRepository.saveAll(clients);
         System.out.println("🏢 Seeded " + clients.size() + " clients");
     }
 
-    private void seedOrders() {
-        List<Client> clients = clientRepository.findAll();
-        
-        List<Order> orders = Arrays.asList(
-            // Orders for Acme Corporation
-            createOrder("Laptop Pro", clients.get(0), 2, new BigDecimal("750.00"), LocalDate.now().minusDays(30), 1, "CARD", "EXPRESS", "COMPLETED"),
-            createOrder("Office Software", clients.get(0), 1, new BigDecimal("2300.50"), LocalDate.now().minusDays(15), 2, "BANK_TRANSFER", "STANDARD", "PENDING"),
-            
-            // Orders for Tech Solutions Ltd
-            createOrder("Cloud Services", clients.get(1), 3, new BigDecimal("296.92"), LocalDate.now().minusDays(25), 1, "CARD", "EXPRESS", "COMPLETED"),
-            createOrder("Server Hardware", clients.get(1), 1, new BigDecimal("3200.00"), LocalDate.now().minusDays(10), 3, "CASH", "PRIORITY", "IN_PROGRESS"),
-            createOrder("Network Equipment", clients.get(1), 2, new BigDecimal("875.13"), LocalDate.now().minusDays(5), 2, "CARD", "STANDARD", "PENDING"),
-            
-            // Orders for Global Industries
-            createOrder("Industrial Software", clients.get(2), 1, new BigDecimal("4500.00"), LocalDate.now().minusDays(20), 1, "BANK_TRANSFER", "EXPRESS", "COMPLETED"),
-            createOrder("Safety Equipment", clients.get(2), 4, new BigDecimal("300.00"), LocalDate.now().minusDays(8), 2, "CARD", "STANDARD", "PENDING"),
-            
-            // Orders for Innovation Systems
-            createOrder("AI Development Kit", clients.get(3), 1, new BigDecimal("2800.50"), LocalDate.now().minusDays(12), 1, "CASH", "PRIORITY", "COMPLETED"),
-            createOrder("Testing Tools", clients.get(3), 5, new BigDecimal("190.15"), LocalDate.now().minusDays(3), 2, "CARD", "STANDARD", "IN_PROGRESS"),
-            
-            // Orders for Digital Dynamics
-            createOrder("Digital Marketing Suite", clients.get(4), 1, new BigDecimal("3600.00"), LocalDate.now().minusDays(18), 3, "BANK_TRANSFER", "EXPRESS", "COMPLETED"),
-            createOrder("Analytics Platform", clients.get(4), 2, new BigDecimal("1050.13"), LocalDate.now().minusDays(7), 1, "CARD", "STANDARD", "PENDING"),
-            
-            // Orders for Future Technologies
-            createOrder("IoT Sensors", clients.get(5), 10, new BigDecimal("180.00"), LocalDate.now().minusDays(22), 2, "CASH", "PRIORITY", "COMPLETED"),
-            createOrder("Machine Learning API", clients.get(5), 1, new BigDecimal("2900.50"), LocalDate.now().minusDays(6), 1, "CARD", "EXPRESS", "IN_PROGRESS"),
-            
-            // Orders for Smart Solutions
-            createOrder("Smart Home Devices", clients.get(6), 3, new BigDecimal("416.92"), LocalDate.now().minusDays(14), 2, "BANK_TRANSFER", "STANDARD", "COMPLETED"),
-            createOrder("Automation Software", clients.get(6), 1, new BigDecimal("3400.00"), LocalDate.now().minusDays(2), 3, "CARD", "PRIORITY", "PENDING"),
-            
-            // Orders for Elite Enterprises
-            createOrder("Enterprise Security", clients.get(7), 1, new BigDecimal("4200.25"), LocalDate.now().minusDays(16), 1, "CASH", "EXPRESS", "COMPLETED"),
-            createOrder("Business Intelligence", clients.get(7), 2, new BigDecimal("800.00"), LocalDate.now().minusDays(4), 2, "CARD", "STANDARD", "IN_PROGRESS"),
-            createOrder("CRM System", clients.get(7), 1, new BigDecimal("3800.50"), LocalDate.now().minusDays(1), 1, "BANK_TRANSFER", "PRIORITY", "PENDING")
-        );
-        
-        orderRepository.saveAll(orders);
-        System.out.println("📦 Seeded " + orders.size() + " orders");
-    }
+    private void seedOrdersUpToTarget() {
+        long existing = orderRepository.count();
+        if (existing >= TARGET_ORDER_COUNT) {
+            System.out.println("📦 Already have " + existing + " orders—skipping order seeding.");
+            return;
+        }
 
-    private Order createOrder(String productName, Client client, Integer quantity, BigDecimal price, LocalDate orderDate,
-                            Integer type, String paymentMethod, String expedition, String status) {
-        Order order = new Order(productName, client, quantity, price, orderDate);
-        order.setType(type);
-        order.setPaymentMethod(paymentMethod);
-        order.setExpedition(expedition);
-        order.setStatus(status);
-        return order;
+        List<Client> clients = clientRepository.findAll();
+        if (clients.isEmpty()) {
+            System.out.println("⚠️  No clients found—cannot seed orders.");
+            return;
+        }
+
+        String[] productNames    = {"Laptop Pro","Office Software","Cloud Services",
+                                    "Server Hardware","Network Equipment","Industrial Software",
+                                    "Safety Equipment","AI Development Kit","Testing Tools",
+                                    "Digital Marketing Suite","Analytics Platform","IoT Sensors",
+                                    "Machine Learning API","Smart Home Devices","Automation Software",
+                                    "Enterprise Security","Business Intelligence","CRM System"};
+        String[] paymentMethods  = {"CARD","BANK_TRANSFER","CASH"};
+        String[] expeditions     = {"EXPRESS","STANDARD","PRIORITY"};
+        String[] statuses        = {"COMPLETED","PENDING","IN_PROGRESS"};
+
+        Random rnd = new Random();
+        List<Order> toSave = new ArrayList<>();
+        int needed = TARGET_ORDER_COUNT - (int)existing;
+
+        for (int i = 0; i < needed; i++) {
+            Client client = clients.get(rnd.nextInt(clients.size()));
+            String product  = productNames[rnd.nextInt(productNames.length)];
+            int quantity    = rnd.nextInt(5) + 1;
+            BigDecimal price = BigDecimal.valueOf(50 + rnd.nextDouble() * 9950)
+                                       .setScale(2, BigDecimal.ROUND_HALF_UP);
+            LocalDate date   = LocalDate.now().minusDays(rnd.nextInt(365));
+            int type         = rnd.nextInt(3) + 1;
+            String payment   = paymentMethods[rnd.nextInt(paymentMethods.length)];
+            String expedition= expeditions[rnd.nextInt(expeditions.length)];
+            String status    = statuses[rnd.nextInt(statuses.length)];
+
+            Order order = new Order(product, client, quantity, price, date);
+            order.setType(type);
+            order.setPaymentMethod(payment);
+            order.setExpedition(expedition);
+            order.setStatus(status);
+            toSave.add(order);
+        }
+
+        orderRepository.saveAll(toSave);
+        System.out.println("📦 Seeded " + toSave.size() + " orders (total now "
+                           + orderRepository.count() + ")");
     }
-} 
+}
